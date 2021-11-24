@@ -54,8 +54,8 @@ func (a *ArtWork) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 		result, err = a.addUser(APIstub, args)
 	} else if fn == "addWork" {
 		result, err = a.addWork(APIstub, args)
-	} else if fn == "TradeProps" {
-		result, err = a.TradeProps(APIstub, args)
+	} else if fn == "tradeProps" {
+		result, err = a.tradeProps(APIstub, args)
 	} else if fn == "endTradeProps" {
 		result, err = a.endTradeProps(APIstub, args)
 	} else if fn == "getHistory" {
@@ -101,7 +101,7 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (s
 	property, _ := strconv.Atoi(args[4])
 	owners := map[string]int{"myCompany": property}
 
-	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitalPrice: price, TotalProperty: property, Owners: owners, FinalPrice: -1}
+	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitalPrice: price, TotalProperty: property, Status: "ENROLL", Owners: owners, FinalPrice: -1}
 	dataAsBytes, _ := json.Marshal(data)
 
 	err := APIstub.PutState(args[0], dataAsBytes)
@@ -122,7 +122,7 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (s
 	return string(dataAsBytes), nil
 }
 
-func (a *ArtWork) TradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
 
 	if len(args) != 4 {
 		return "", fmt.Errorf("Incorrect arguments")

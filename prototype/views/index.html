@@ -19,14 +19,23 @@
 <body>
     <div class="container">
         <i class="fas fa-id-card-alt" style="font-size: 150px;color:gainsboro"></i>
-        <h1> TEAMATE<br>프로토타입 </h1>
+        <h1> ArtWork<br>프로토타입 </h1>
         <hr>
         <div class="row justify-content-md-center">
             <div class="col-lg">
                 <div id="new-alert"></div>
-                <h3>새 메이트를 추가합니다</h3>
-                <input type="text" id="new-email" name="email" placeholder="새로 추가할 메이트의 email을 입력하세요"> <br>
-                <button class="btn btn-primary" id="new-btn">추가하기</button>
+                <h3>유저를 추가합니다</h3>
+                <input type="text" id="new-user" name="user" placeholder="추가할 유저의 id를 입력하세요"> <br>
+                <button class="btn btn-primary" id="new-user-btn">유저 추가</button>
+            </div>   
+        </div>
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg">
+                <div id="new-alert"></div>
+                <h3>작품를 추가합니다</h3>
+                <input type="text" id="new-user" name="user" placeholder="추가할 유저의 id를 입력하세요"> <br>
+                <button class="btn btn-primary" id="new-user-btn">유저 추가</button>
             </div>   
         </div>
         
@@ -58,13 +67,13 @@
 </body>
 
 <script>    
-    $("#new-btn").click(()=>{
-        // new-email이라는 id값을 가지고 있는 input의 value를 가지고 옴
+    $("#new-user-btn").click(()=>{
+        // new-user이라는 id값을 가지고 있는 input의 value를 가지고 옴
         const value = $("#new-email").val();
-        const url = "/mate"
+        const url = "/user"
 
-        // email이라는 파라메터에 위의 value를 넣음
-        $.post(url, {email: value}, (data,status)=>{
+        // userID라는 파라메터에 위의 value를 넣음
+        $.post(url, {userID: value}, (data,status)=>{
             // http 상태 코드가 200(success)이라면
             if(status == "success"){
                 // 성공했다는 alert창을 띄움
@@ -73,6 +82,8 @@
             }
         })
     })
+
+
     $("#add-btn").click(()=>{
         // new-email이라는 id값을 가지고 있는 input의 value를 가지고 옴
         const e = $("#add-email").val();
