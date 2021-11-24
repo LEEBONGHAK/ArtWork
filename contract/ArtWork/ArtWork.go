@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -18,14 +17,14 @@ type User struct {
 }
 
 type Works struct {
-	UCIcode        string         `json:"UCIcode"`
-	WorkName       string         `json:"WorkName"`
-	Artist         string         `json:"Artist"`
-	InitalPrice    int            `json:"InitalPrice"`
-	WorkInfo       []string       `json:"WorkInfo"`
-	TotalOwnerShip int            `json:"TotalOwnership"`
-	Owners         map[string]int `json:"Owners"`
-	FinalPrice     int            `json:"FinalPrice"`
+	UCIcode       string         `json:"UCIcode"`
+	Title         string         `json:"Title"`
+	Artist        string         `json:"Artist"`
+	InitalPrice   int            `json:"InitalPrice"`
+	TotalProperty int            `json:"TotalProperty"`
+	Status        string         `json:"Status"`
+	Owners        map[string]int `json:"Owners"`
+	FinalPrice    int            `json:"FinalPrice"`
 }
 
 type ArtWork struct {
@@ -55,26 +54,10 @@ func (a *ArtWork) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 		result, err = a.addUser(APIstub, args)
 	} else if fn == "addWork" {
 		result, err = a.addWork(APIstub, args)
-	} else if fn == "getUser" {
-		result, err = a.getUser(APIstub, args)
-	} else if fn == "getWork" {
-		result, err = a.getWork(APIstub, args)
-	} else if fn == "delUser" {
-		result, err = a.delUser(APIstub, args)
-	} else if fn == "delWork" {
-		result, err = a.delWork(APIstub, args)
-	} else if fn == "queryAllWorks" {
-		result, err = a.queryAllWorks(APIstub, args)
-	} else if fn == "searchWorksBasedOnWorkName" {
-		result, err = a.searchWorksBasedOnWorkName(APIstub, args)
-	} else if fn == "searchWorksBasedOnArtist" {
-		result, err = a.searchWorksBasedOnArtist(APIstub, args)
-	} else if fn == "transferOwnerShip" {
-		result, err = a.transferOwnerShip(APIstub, args)
-	} else if fn == "splitOwnerShip" {
-		result, err = a.splitOwnerShip(APIstub, args)
-	} else if fn == "recordPriceOfSoldWork" {
-		result, err = a.recordPriceOfSoldWork(APIstub, args)
+	} else if fn == "TradeProps" {
+		result, err = a.TradeProps(APIstub, args)
+	} else if fn == "endTradeProps" {
+		result, err = a.endTradeProps(APIstub, args)
 	} else if fn == "getHistory" {
 		result, err = a.getHistory(APIstub, args)
 	} else {
@@ -109,20 +92,16 @@ func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) (s
 
 func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
 	fmt.Println(len(args))
-	if len(args) < 4 {
+	if len(args) != 5 {
 		return "", fmt.Errorf("Incorrect arguments")
 	}
 
-	// key: UCIcode (args[0]), value: UCIcode+WorkName+Artist+InitalPrice+WorkInfo+TotalOwnerShip+Owners  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
+	// key: UCIcode (args[0]), value: UCIcode+Title+Artist+InitalPrice+TotalProperty+Status+Owners+FinalPrice  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
 	price, _ := strconv.Atoi(args[3])
-	var infos []string
-	for i := 4; i < len(args); i++ {
-		fmt.Println(args[i])
-		infos = append(infos, args[i])
-	}
-	owners := map[string]int{"myCompany": 1}
+	property, _ := strconv.Atoi(args[4])
+	owners := map[string]int{"myCompany": property}
 
-	data := Works{UCIcode: args[0], WorkName: args[1], Artist: args[2], InitalPrice: price, WorkInfo: infos, TotalOwnerShip: 1, Owners: owners, FinalPrice: -1}
+	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitalPrice: price, TotalProperty: property, Owners: owners, FinalPrice: -1}
 	dataAsBytes, _ := json.Marshal(data)
 
 	err := APIstub.PutState(args[0], dataAsBytes)
@@ -134,331 +113,16 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (s
 	company := User{}
 	json.Unmarshal(companyAsBytes, &company)
 
-	company.Ownlist[args[0]] = 1
+	company.Ownlist[args[0]] = property
 	err = APIstub.PutState("myCompany", companyAsBytes)
 	if err != nil {
 		return "", fmt.Errorf("Failed to add work : %s", err)
 	}
 
-	//  ==== Index the works to enable workName-based range queries ====
-	//  An 'index' is a normal key/value entry in state.
-	//  The key is a composite key, with the elements that you want to range query on listed first.
-	//  In our case, the composite key is based on indexName~WorkName~UCIcode.
-	//  This will enable very efficient state range queries based on composite keys matching indexName~workName~*
-	indexName := "workName~UCIcode"
-	colorNameIndexKey, err := APIstub.CreateCompositeKey(indexName, []string{data.WorkName, data.UCIcode})
-	if err != nil {
-		return "", fmt.Errorf("Failed to add index : %s", err)
-	}
-	//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
-	//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
-	value := []byte{0x00}
-	APIstub.PutState(colorNameIndexKey, value)
-
-	indexName = "artist~UCIcode"
-	colorNameIndexKey, err = APIstub.CreateCompositeKey(indexName, []string{data.Artist, data.UCIcode})
-	if err != nil {
-		return "", fmt.Errorf("Failed to add index : %s", err)
-	}
-	//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
-	//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
-	value = []byte{0x00}
-	APIstub.PutState(colorNameIndexKey, value)
-
 	return string(dataAsBytes), nil
 }
 
-func (a *ArtWork) getUser(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	value, err := APIstub.GetState(args[0])
-	if err != nil {
-		return "", fmt.Errorf("Failed to get user : %s with error: %s", args[0], err)
-	}
-
-	if value == nil {
-		return "", fmt.Errorf("Asset not found : %s", args[0])
-	}
-
-	return string(value), nil
-}
-
-func (a *ArtWork) getWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	value, err := APIstub.GetState(args[0])
-	if err != nil {
-		return "", fmt.Errorf("Failed to get asset : %s with error: %s", args[0], err)
-	}
-
-	if value == nil {
-		return "", fmt.Errorf("Asset not found : %s", args[0])
-	}
-
-	return string(value), nil
-}
-
-func (a *ArtWork) delUser(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	userAsBytes, _ := APIstub.GetState(args[0])
-	user := User{}
-	json.Unmarshal(userAsBytes, &user)
-
-	if len(user.Ownlist) != 0 {
-		return "", fmt.Errorf("User have works")
-	}
-
-	err := APIstub.DelState(args[0])
-	if err != nil {
-		return "", fmt.Errorf("Failed to delete user : %s with error: %s", args[0], err)
-	}
-
-	return "User is deleted", nil
-}
-
-func (a *ArtWork) delWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	workAsBytes, _ := APIstub.GetState(args[0])
-	work := Works{}
-	json.Unmarshal(workAsBytes, &work)
-
-	if work.FinalPrice == -1 {
-		return "", fmt.Errorf("Work doesn't sell yet")
-	}
-
-	err := APIstub.DelState(args[0])
-	if err != nil {
-		return "", fmt.Errorf("Failed to delete work : %s with error: %s", args[0], err)
-	}
-
-	return "Work is deleted", nil
-}
-
-func (a *ArtWork) queryAllWorks(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 2 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	startKey := args[0]
-	endKey := args[1]
-
-	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get works")
-	}
-	defer resultsIterator.Close()
-
-	// buffer is a JSON array containing QueryResults
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-
-	bArrayMemberAlreadyWritten := false
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return "", fmt.Errorf("Failed to get works")
-		}
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(queryResponse.Key)
-		buffer.WriteString("\"")
-
-		buffer.WriteString(", \"Record\":")
-		// Record is a JSON object, so we write as-is
-		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("] - queryAllWorks")
-
-	return buffer.String(), nil
-}
-
-func (a *ArtWork) searchWorksBasedOnWorkName(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	workName := args[0]
-
-	// Query the workName~UCIcode index by workName
-	// This will execute a key range query on all keys starting with 'workName'
-	coloredMarbleResultsIterator, err := APIstub.GetStateByPartialCompositeKey("workName~UCIcode", []string{workName})
-	if err != nil {
-		return "", fmt.Errorf("Failed to get works based on" + args[0])
-	}
-	defer coloredMarbleResultsIterator.Close()
-
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-	bArrayMemberAlreadyWritten := false
-
-	// Iterate through result set and for each marble found, transfer to newOwner
-	var i int
-	for i = 0; coloredMarbleResultsIterator.HasNext(); i++ {
-		// Note that we don't get the value (2nd return variable), we'll just get the marble name from the composite key
-		responseRange, err := coloredMarbleResultsIterator.Next()
-		if err != nil {
-			return "", fmt.Errorf("Failed to get works based on" + args[0])
-		}
-
-		// get the workName and UCIcode from workName~UCIcode composite key
-		_, compositeKeyParts, err := APIstub.SplitCompositeKey(responseRange.Key)
-		if err != nil {
-			return "", fmt.Errorf("Failed to get work based on" + args[0])
-		}
-		returnedUCIcode := compositeKeyParts[1]
-
-		workAsBytes, _ := APIstub.GetState(returnedUCIcode)
-		work := Works{}
-		json.Unmarshal(workAsBytes, &work)
-
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(returnedUCIcode)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"WorkName\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(work.WorkName)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"Artist\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(work.Artist)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"InitalPrice\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.InitalPrice))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"WorkInfo\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strings.Join(work.WorkInfo, ", "))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"TotalOwnerShip\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.TotalOwnerShip))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"Owners\":")
-		buffer.WriteString("\"")
-		owners, _ := json.Marshal(work.Owners)
-		buffer.WriteString(string(owners))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"FinalPrice\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.FinalPrice))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("] - search works based on work's name :" + args[0])
-
-	return buffer.String(), nil
-}
-
-func (a *ArtWork) searchWorksBasedOnArtist(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	artist := args[0]
-
-	// Query the artist~UCIcode index by workName
-	// This will execute a key range query on all keys starting with 'artist'
-	coloredMarbleResultsIterator, err := APIstub.GetStateByPartialCompositeKey("artist~UCIcode", []string{artist})
-	if err != nil {
-		return "", fmt.Errorf("Failed to get works based on" + args[0])
-	}
-	defer coloredMarbleResultsIterator.Close()
-
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-	bArrayMemberAlreadyWritten := false
-
-	// Iterate through result set and for each marble found, transfer to newOwner
-	var i int
-	for i = 0; coloredMarbleResultsIterator.HasNext(); i++ {
-		responseRange, err := coloredMarbleResultsIterator.Next()
-		if err != nil {
-			return "", fmt.Errorf("Failed to get works based on" + args[0])
-		}
-
-		// get the artist and UCIcode from artist~UCIcode composite key
-		_, compositeKeyParts, err := APIstub.SplitCompositeKey(responseRange.Key)
-		if err != nil {
-			return "", fmt.Errorf("Failed to get work based on" + args[0])
-		}
-		returnedArtist := compositeKeyParts[1]
-
-		workAsBytes, _ := APIstub.GetState(returnedArtist)
-		work := Works{}
-		json.Unmarshal(workAsBytes, &work)
-
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(returnedArtist)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"WorkName\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(work.WorkName)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"Artist\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(work.Artist)
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"InitalPrice\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.InitalPrice))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"WorkInfo\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strings.Join(work.WorkInfo, ", "))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"TotalOwnerShip\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.TotalOwnerShip))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"Owners\":")
-		buffer.WriteString("\"")
-		owners, _ := json.Marshal(work.Owners)
-		buffer.WriteString(string(owners))
-		buffer.WriteString("\"")
-		buffer.WriteString(", \"FinalPrice\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.Itoa(work.FinalPrice))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("] - search works based on work's name :" + args[0])
-
-	return buffer.String(), nil
-}
-
-func (a *ArtWork) transferOwnerShip(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) TradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
 
 	if len(args) != 4 {
 		return "", fmt.Errorf("Incorrect arguments")
@@ -476,6 +140,11 @@ func (a *ArtWork) transferOwnerShip(APIstub shim.ChaincodeStubInterface, args []
 	json.Unmarshal(userAsBytes1, &user1)
 	json.Unmarshal(userAsBytes2, &user2)
 	json.Unmarshal(workAsBytes, &work)
+
+	// chake work's status
+	if work.Status == "END" {
+		return "", fmt.Errorf("This work can't trade anymore, please check again")
+	}
 
 	// check seller have work
 	_, haveWork := user1.Ownlist[args[2]]
@@ -507,6 +176,8 @@ func (a *ArtWork) transferOwnerShip(APIstub shim.ChaincodeStubInterface, args []
 		user2.Ownlist[args[2]] = transferNum
 	}
 
+	work.Status = "TRADING"
+
 	userAsBytes1, _ = json.Marshal(user1)
 	userAsBytes2, _ = json.Marshal(user2)
 	workAsBytes, _ = json.Marshal(work)
@@ -518,38 +189,7 @@ func (a *ArtWork) transferOwnerShip(APIstub shim.ChaincodeStubInterface, args []
 	return string(userAsBytes1) + string(userAsBytes2) + string(workAsBytes), nil
 }
 
-func (a *ArtWork) splitOwnerShip(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
-
-	if len(args) != 2 {
-		return "", fmt.Errorf("Incorrect arguments")
-	}
-
-	workAsBytes, _ := APIstub.GetState(args[0])
-	work := Works{}
-
-	newOwnerShipNum, _ := strconv.Atoi(args[1])
-	json.Unmarshal(workAsBytes, &work)
-
-	work.TotalOwnerShip = newOwnerShipNum
-	work.Owners["myCompany"] = newOwnerShipNum
-
-	workAsBytes, _ = json.Marshal(work)
-	err := APIstub.PutState(args[0], workAsBytes)
-	if err != nil {
-		return "", fmt.Errorf("Failed to update ownership number : %s", err)
-	}
-
-	companyAsBytes, _ := APIstub.GetState("myCompany")
-	company := User{}
-	json.Unmarshal(companyAsBytes, &company)
-
-	company.Ownlist[args[0]] = newOwnerShipNum
-	APIstub.PutState("myCompany", companyAsBytes)
-
-	return string(workAsBytes), nil
-}
-
-func (a *ArtWork) recordPriceOfSoldWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) endTradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
 
 	if len(args) != 2 {
 		return "", fmt.Errorf("Incorrect arguments")
@@ -558,6 +198,8 @@ func (a *ArtWork) recordPriceOfSoldWork(APIstub shim.ChaincodeStubInterface, arg
 	workAsBytes, _ := APIstub.GetState(args[0])
 	work := Works{}
 	json.Unmarshal(workAsBytes, &work)
+
+	work.Status = "END"
 
 	finalPrice, _ := strconv.Atoi(args[1])
 	if finalPrice < 0 {

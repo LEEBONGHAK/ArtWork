@@ -11,7 +11,7 @@ OrdererOrgs:
   # Orderer
   # ---------------------------------------------------------------------------
   - Name: Orderer
-    Domain: example.com
+    Domain: artwork.com
     # ---------------------------------------------------------------------------
     # "Specs" - See PeerOrgs below for complete description
     # ---------------------------------------------------------------------------
@@ -22,13 +22,13 @@ OrdererOrgs:
 # ---------------------------------------------------------------------------
 PeerOrgs:
   - Name: Org1
-    Domain: org1.example.com
+    Domain: org1.artwork.com
     Template: # 생성될 peer 수
       Count: 1
-    Users:    # 생성될 기등록 USER 인증서의 수
+    Users: # 생성될 기등록 USER 인증서의 수
       Count: 1
   - Name: Org2
-    Domain: org2.example.com
+    Domain: org2.artwork.com
     Template:
       Count: 1
     Users:
