@@ -32,6 +32,16 @@ type ArtWork struct {
 }
 
 func (a *ArtWork) Init(APIstub shim.ChaincodeStubInterface) peer.Response {
+
+	var ownList = make(map[string]int)
+	data := User{ID: "myCompany", Ownlist: ownList}
+	dataAsBytes, _ := json.Marshal(data)
+
+	err := APIstub.PutState("myCompany", dataAsBytes)
+	if err != nil {
+		return shim.Error("Failed to Init")
+	}
+
 	return shim.Success(nil)
 }
 
@@ -65,8 +75,8 @@ func (a *ArtWork) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 		result, err = a.splitOwnerShip(APIstub, args)
 	} else if fn == "recordPriceOfSoldWork" {
 		result, err = a.recordPriceOfSoldWork(APIstub, args)
-	} else if fn == "getHistoryForWork" {
-		result, err = a.getHistoryForWork(APIstub, args)
+	} else if fn == "getHistory" {
+		result, err = a.getHistory(APIstub, args)
 	} else {
 		return shim.Error("Not supported chaincode function")
 	}
@@ -561,22 +571,22 @@ func (a *ArtWork) recordPriceOfSoldWork(APIstub shim.ChaincodeStubInterface, arg
 	return string(workAsBytes), nil
 }
 
-func (a *ArtWork) getHistoryForWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) getHistory(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
 
 	if len(args) != 1 {
 		return "", fmt.Errorf("Incorrect arguments")
 	}
-	workCode := args[0]
+	ID := args[0]
 
-	resultsIterator, err := APIstub.GetHistoryForKey(workCode)
+	resultsIterator, err := APIstub.GetHistoryForKey(ID)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get history of work : %s with error: %s", args[0], err)
+		return "", fmt.Errorf("Failed to get history : %s with error: %s", args[0], err)
 	}
 	defer resultsIterator.Close()
 
 	// buffer is a JSON array containing historic values for the work
 	var buffer bytes.Buffer
-	buffer.WriteString("start getHistoryForMarble: " + workCode + "-")
+	buffer.WriteString("start getHistory: " + ID + "-")
 	buffer.WriteString("[")
 
 	bArrayMemberAlreadyWritten := false
@@ -596,7 +606,7 @@ func (a *ArtWork) getHistoryForWork(APIstub shim.ChaincodeStubInterface, args []
 		buffer.WriteString(response.TxId)
 		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"WorkName\":")
+		buffer.WriteString(", \"Values\":")
 		// if it was a delete operation on given key, then we need to set the
 		//corresponding value null. Else, we will write the response.Value
 		//as-is (as the Value itself a JSON marble)
@@ -619,7 +629,7 @@ func (a *ArtWork) getHistoryForWork(APIstub shim.ChaincodeStubInterface, args []
 		buffer.WriteString("}")
 		bArrayMemberAlreadyWritten = true
 	}
-	buffer.WriteString("] - getHistoryForWork returning")
+	buffer.WriteString("] - getHistory returning")
 
 	return buffer.String(), nil
 }
