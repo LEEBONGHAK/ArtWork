@@ -147,10 +147,10 @@ app.post('/end', async(req, res)=>{
 app.get('/user', async(req, res)=>{
 
     try {
-        const id = req.query.pid;
-        console.log(`${id}`);
+        const pid = req.query.pid;
+        console.log(`${pid}`);
 
-        //result = cc_call('history', [id])
+        //result = cc_call('history', [pid])
 
         const walletPath = path.join(process.cwd(), 'wallet');
         const wallet = new FileSystemWallet(walletPath);
@@ -168,7 +168,7 @@ app.get('/user', async(req, res)=>{
         const network = await gateway.getNetwork('myart');
         const contract = network.getContract('ArtWork');
         
-        result = await contract.evaluateTransaction('history', id);
+        result = await contract.evaluateTransaction('history', pid);
         
         gateway.disconnect();
         

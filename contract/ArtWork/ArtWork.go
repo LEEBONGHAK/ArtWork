@@ -20,7 +20,7 @@ type Works struct {
 	UCIcode       string         `json:"UCIcode"`
 	Title         string         `json:"Title"`
 	Artist        string         `json:"Artist"`
-	InitalPrice   int            `json:"InitalPrice"`
+	InitialPrice  int            `json:"InitialPrice"`
 	TotalProperty int            `json:"TotalProperty"`
 	Status        string         `json:"Status"`
 	Owners        map[string]int `json:"Owners"`
@@ -48,33 +48,25 @@ func (a *ArtWork) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 
 	fn, args := APIstub.GetFunctionAndParameters()
 
-	var result string
-	var err error
 	if fn == "addUser" {
-		result, err = a.addUser(APIstub, args)
+		return a.addUser(APIstub, args)
 	} else if fn == "addWork" {
-		result, err = a.addWork(APIstub, args)
+		return a.addWork(APIstub, args)
 	} else if fn == "tradeProps" {
-		result, err = a.tradeProps(APIstub, args)
+		return a.tradeProps(APIstub, args)
 	} else if fn == "endTradeProps" {
-		result, err = a.endTradeProps(APIstub, args)
+		return a.endTradeProps(APIstub, args)
 	} else if fn == "getHistory" {
-		result, err = a.getHistory(APIstub, args)
-	} else {
-		return shim.Error("Not supported chaincode function")
+		return a.getHistory(APIstub, args)
 	}
 
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success([]byte(result))
+	return shim.Error("Not supported chaincode function")
 }
 
-func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
+		return shim.Error("Incorrect arguments")
 	}
 
 	var ownList = make(map[string]int)
@@ -84,29 +76,29 @@ func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) (s
 
 	err := APIstub.PutState(args[0], dataAsBytes)
 	if err != nil {
-		return "", fmt.Errorf("Failed to add user : %s", err)
+		return shim.Error("Failed to add user")
 	}
 
-	return string(dataAsBytes), nil
+	return shim.Success(nil)
 }
 
-func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 	fmt.Println(len(args))
 	if len(args) != 5 {
-		return "", fmt.Errorf("Incorrect arguments")
+		return shim.Error("Incorrect arguments")
 	}
 
-	// key: UCIcode (args[0]), value: UCIcode+Title+Artist+InitalPrice+TotalProperty+Status+Owners+FinalPrice  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
+	// key: UCIcode (args[0]), value: UCIcode+Title+Artist+InitialPrice+TotalProperty+Status+Owners+FinalPrice  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
 	price, _ := strconv.Atoi(args[3])
 	property, _ := strconv.Atoi(args[4])
 	owners := map[string]int{"myCompany": property}
 
-	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitalPrice: price, TotalProperty: property, Status: "ENROLL", Owners: owners, FinalPrice: -1}
+	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitialPrice: price, TotalProperty: property, Status: "ENROLL", Owners: owners, FinalPrice: -1}
 	dataAsBytes, _ := json.Marshal(data)
 
 	err := APIstub.PutState(args[0], dataAsBytes)
 	if err != nil {
-		return "", fmt.Errorf("Failed to add work : %s", err)
+		return shim.Error("Failed to add work")
 	}
 
 	companyAsBytes, _ := APIstub.GetState("myCompany")
@@ -116,16 +108,16 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) (s
 	company.Ownlist[args[0]] = property
 	err = APIstub.PutState("myCompany", companyAsBytes)
 	if err != nil {
-		return "", fmt.Errorf("Failed to add work : %s", err)
+		return shim.Error("Failed to add work")
 	}
 
-	return string(dataAsBytes), nil
+	return shim.Success(nil)
 }
 
-func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 4 {
-		return "", fmt.Errorf("Incorrect arguments")
+		return shim.Error("Incorrect arguments")
 	}
 
 	userAsBytes1, _ := APIstub.GetState(args[0])
@@ -143,19 +135,19 @@ func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string)
 
 	// chake work's status
 	if work.Status == "END" {
-		return "", fmt.Errorf("This work can't trade anymore, please check again")
+		return shim.Error("This work can't trade anymore, please check again")
 	}
 
 	// check seller have work
 	_, haveWork := user1.Ownlist[args[2]]
 	_, isOwnWork := work.Owners[args[0]]
 	if !(haveWork) || !(isOwnWork) {
-		return "", fmt.Errorf("Seller doesn't have work, please check again")
+		return shim.Error("Seller doesn't have work, please check again")
 	}
 
 	// check seller have enough ownership
 	if user1.Ownlist[args[2]] < transferNum {
-		return "", fmt.Errorf("Seller doesn't have enough ownership to trade")
+		return shim.Error("Seller doesn't have enough ownership to trade")
 	}
 
 	user1.Ownlist[args[2]] -= transferNum
@@ -186,13 +178,13 @@ func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string)
 	APIstub.PutState(args[1], userAsBytes2)
 	APIstub.PutState(args[2], workAsBytes)
 
-	return string(userAsBytes1) + string(userAsBytes2) + string(workAsBytes), nil
+	return shim.Success(nil)
 }
 
-func (a *ArtWork) endTradeProps(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) endTradeProps(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 2 {
-		return "", fmt.Errorf("Incorrect arguments")
+		return shim.Error("Incorrect arguments")
 	}
 
 	workAsBytes, _ := APIstub.GetState(args[0])
@@ -203,32 +195,34 @@ func (a *ArtWork) endTradeProps(APIstub shim.ChaincodeStubInterface, args []stri
 
 	finalPrice, _ := strconv.Atoi(args[1])
 	if finalPrice < 0 {
-		return "", fmt.Errorf("Please, check the price")
+		return shim.Error("Please, check the price")
 	}
 	work.FinalPrice = finalPrice
 
 	workAsBytes, _ = json.Marshal(work)
 	APIstub.PutState(args[0], workAsBytes)
 
-	return string(workAsBytes), nil
+	return shim.Success(nil)
 }
 
-func (a *ArtWork) getHistory(APIstub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (a *ArtWork) getHistory(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 1 {
-		return "", fmt.Errorf("Incorrect arguments")
+		return shim.Error("Incorrect arguments")
 	}
+
 	ID := args[0]
+
+	fmt.Printf("- start getHistoryForKey: %s\n", ID)
 
 	resultsIterator, err := APIstub.GetHistoryForKey(ID)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get history : %s with error: %s", args[0], err)
+		return shim.Error(err.Error())
 	}
 	defer resultsIterator.Close()
 
 	// buffer is a JSON array containing historic values for the work
 	var buffer bytes.Buffer
-	buffer.WriteString("start getHistory: " + ID + "-")
 	buffer.WriteString("[")
 
 	bArrayMemberAlreadyWritten := false
@@ -236,7 +230,7 @@ func (a *ArtWork) getHistory(APIstub shim.ChaincodeStubInterface, args []string)
 
 		response, err := resultsIterator.Next()
 		if err != nil {
-			return "", fmt.Errorf("Failed to get history of work : %s with error: %s", args[0], err)
+			return shim.Error(err.Error())
 		}
 
 		// Add a comma before array members, suppress it for the first array member
@@ -271,9 +265,11 @@ func (a *ArtWork) getHistory(APIstub shim.ChaincodeStubInterface, args []string)
 		buffer.WriteString("}")
 		bArrayMemberAlreadyWritten = true
 	}
-	buffer.WriteString("] - getHistory returning")
+	buffer.WriteString("]")
 
-	return buffer.String(), nil
+	fmt.Printf("- getHistoryForKey returning: \n%s\n", buffer.String())
+
+	return shim.Success(buffer.Bytes())
 }
 
 func main() {
