@@ -2,32 +2,32 @@
 name: basic-network
 version: 1.0.0
 client:
-  organization: Org1
-  connection:
-    timeout:
-      peer:
-        endorser: "300"
-      orderer: "300"
+    organization: Org1
+    connection:
+        timeout:
+            peer:
+                endorser: "300"
+            orderer: "300"
 channels:
-  myart:
-    orderers:
-      - orderer.artwork.com
-    peers:
-      peer0.org1.artwork.com: {}
+    myart:
+        orderers:
+            - orderer.artwork.com
+        peers:
+            peer0.org1.artwork.com: {}
 organizations:
-  Org1:
-    mspid: Org1MSP
-    peers:
-      - peer0.org1.artwork.com
-    certificateAuthorities:
-      - ca.artwork.com
+    Org1:
+        mspid: Org1MSP
+        peers:
+            - peer0.org1.artwork.com
+        certificateAuthorities:
+            - ca.org1.artwork.com
 orderers:
-  orderer.artwork.com:
-    url: grpc://localhost:7050
+    orderer.artwork.com:
+        url: grpc://localhost:7050
 peers:
-  peer0.org1.artwork.com:
-    url: grpc://localhost:7051
+    peer0.org1.artwork.com:
+        url: grpc://localhost:7051
 certificateAuthorities:
-  ca.artwork.com:
-    url: http://localhost:7054
-    caName: ca.artwork.com
+    ca.org1.artwork.com:
+        url: http://localhost:7054
+        caName: ca.org1.artwork.com

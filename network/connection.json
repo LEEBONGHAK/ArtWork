@@ -29,7 +29,7 @@
                 "peer0.org1.artwork.com"
             ],
             "certificateAuthorities": [
-                "ca.artwork.com"
+                "ca.org1.artwork.com"
             ]
         }
     },
@@ -44,9 +44,9 @@
         }
     },
     "certificateAuthorities": {
-        "ca.artwork.com": {
+        "ca.org1.artwork.com": {
             "url": "http://localhost:7054",
-            "caName": "ca.artwork.com"
+            "caName": "ca.org1.artwork.com"
         }
     }
 }

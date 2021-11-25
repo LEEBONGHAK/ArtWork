@@ -74,6 +74,8 @@ async function cc_call(fn_name, args){
     }
     else if(fn_name == 'getHistory')
         result = await contract.evaluateTransaction('getHistory', args);
+    else if(fn_name == 'getInfos')
+        result = await contract.evaluateTransaction('getHistory', args);
     else
         result = 'not supported function'
 
@@ -185,31 +187,31 @@ app.get('/user', async(req, res)=>{
     }
 });
 
-// // find mate
-// app.post('/mate/:email', async (req,res)=>{
-//     const email = req.body.email;
-//     console.log("email: " + req.body.email);
-//     const walletPath = path.join(process.cwd(), 'wallet');
-//     const wallet = new FileSystemWallet(walletPath);
-//     console.log(`Wallet path: ${walletPath}`);
+// get Infos
+app.post('/info', async (req,res)=>{
+    const pID = req.body.pID;
+    console.log("pID: " + pID);
+    const walletPath = path.join(process.cwd(), 'wallet');
+    const wallet = new FileSystemWallet(walletPath);
+    console.log(`Wallet path: ${walletPath}`);
 
-//     // Check to see if we've already enrolled the user.
-//     const userExists = await wallet.exists('user1');
-//     if (!userExists) {
-//         console.log('An identity for the user "user1" does not exist in the wallet');
-//         console.log('Run the registerUser.js application before retrying');
-//         return;
-//     }
-//     const gateway = new Gateway();
-//     await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
-//     const network = await gateway.getNetwork('mychannel');
-//     const contract = network.getContract('teamate');
-//     const result = await contract.evaluateTransaction('readRating', email);
-//     const myobj = JSON.parse(result)
-//     res.status(200).json(myobj)
-//     // res.status(200).json(result)
+    // Check to see if we've already enrolled the user.
+    const userExists = await wallet.exists('user1');
+    if (!userExists) {
+        console.log('An identity for the user "user1" does not exist in the wallet');
+        console.log('Run the registerUser.js application before retrying');
+        return;
+    }
+    const gateway = new Gateway();
+    await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
+    const network = await gateway.getNetwork('myart');
+    const contract = network.getContract('ArtWork');
+    const result = await contract.evaluateTransaction('getInfos', pID);
+    const myobj = JSON.parse(result)
+    res.status(200).json(myobj)
+    // res.status(200).json(result)
 
-// });
+});
 
 // server start
 app.listen(PORT, HOST);

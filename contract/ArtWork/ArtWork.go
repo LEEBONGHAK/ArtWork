@@ -25,8 +25,8 @@ type Works struct {
 	Artist        string         `json:"Artist"`
 	InitialPrice  int            `json:"InitialPrice"`
 	TotalProperty int            `json:"TotalProperty"`
-	Status        string         `json:"Status"`
 	Owners        map[string]int `json:"Owners"`
+	Status        string         `json:"Status"`
 	FinalPrice    int            `json:"FinalPrice"`
 }
 
@@ -34,7 +34,7 @@ const COMPANY_ID = "myCompany"
 
 func (a *ArtWork) Init(APIstub shim.ChaincodeStubInterface) peer.Response {
 
-	data := User{ID: COMPANY_ID, Ownlist: map[string]int{"test": 1}}
+	data := User{ID: COMPANY_ID, Ownlist: map[string]int{}}
 	dataAsBytes, _ := json.Marshal(data)
 
 	APIstub.PutState(COMPANY_ID, dataAsBytes)
@@ -69,40 +69,43 @@ func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) pe
 		return shim.Error("Incorrect arguments")
 	}
 
+	userID := args[0]
+
 	// key: ID (args[0]), value: ID+OwnList (args[0]+map[string]int{}) -> marshal (make data to byte)
-	data := User{ID: args[0], Ownlist: map[string]int{}}
+	data := User{ID: userID, Ownlist: map[string]int{}}
 	dataAsBytes, _ := json.Marshal(data)
 
-	APIstub.PutState(args[0], dataAsBytes)
+	APIstub.PutState(userID, dataAsBytes)
 
 	return shim.Success(nil)
 }
 
 func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
-	fmt.Println(len(args))
+
 	if len(args) != 5 {
 		return shim.Error("Incorrect arguments")
 	}
 
 	// key: UCIcode (args[0]), value: UCIcode+Title+Artist+InitialPrice+TotalProperty+Status+Owners+FinalPrice  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
-	price, _ := strconv.Atoi(args[3])
-	property, _ := strconv.Atoi(args[4])
-	owners := map[string]int{COMPANY_ID: property}
+	UCIcode := args[0]
+	title := args[1]
+	artist := args[2]
+	initialPrice, _ := strconv.Atoi(args[3])
+	totalProperty, _ := strconv.Atoi(args[4])
+	owners := map[string]int{COMPANY_ID: totalProperty}
 
-	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitialPrice: price, TotalProperty: property, Status: "ENROLL", Owners: owners, FinalPrice: -1}
-	dataAsBytes, _ := json.Marshal(data)
+	workData := Works{UCIcode: UCIcode, Title: title, Artist: artist, InitialPrice: initialPrice, TotalProperty: totalProperty, Owners: owners, Status: "ENROLL", FinalPrice: -1}
+	workDataAsBytes, _ := json.Marshal(workData)
 
-	APIstub.PutState(args[0], dataAsBytes)
+	APIstub.PutState(UCIcode, workDataAsBytes)
 
 	companyAsBytes, _ := APIstub.GetState(COMPANY_ID)
 	company := User{}
 	json.Unmarshal(companyAsBytes, &company)
 
-	companyOwn := map[string]int{args[0]: property}
-	company.Ownlist = companyOwn
-
-	newCompanyAsBytes, _ := json.Marshal(company)
-	APIstub.PutState(COMPANY_ID, newCompanyAsBytes)
+	company.Ownlist[UCIcode] = totalProperty
+	companyAsBytes, _ = json.Marshal(company)
+	APIstub.PutState(COMPANY_ID, companyAsBytes)
 
 	return shim.Success(nil)
 }
@@ -113,7 +116,9 @@ func (a *ArtWork) getInfos(APIstub shim.ChaincodeStubInterface, args []string) p
 		return shim.Error("Incorrect arguments")
 	}
 
-	idAsBytes, _ := APIstub.GetState(args[0])
+	pID := args[0]
+
+	idAsBytes, _ := APIstub.GetState(pID)
 	if idAsBytes == nil {
 		shim.Error("Invaild ID")
 	}
@@ -127,17 +132,22 @@ func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string)
 		return shim.Error("Incorrect arguments")
 	}
 
-	userAsBytes1, _ := APIstub.GetState(args[0])
-	userAsBytes2, _ := APIstub.GetState(args[1])
-	workAsBytes, _ := APIstub.GetState(args[2])
-	transferNum, _ := strconv.Atoi(args[3])
+	sellerID := args[0]
+	buyerID := args[1]
+	workID := args[2]
+	propsNum := args[3]
 
-	user1 := User{}
-	user2 := User{}
+	sellerAsBytes, _ := APIstub.GetState(sellerID)
+	buyerAsBytes, _ := APIstub.GetState(buyerID)
+	workAsBytes, _ := APIstub.GetState(workID)
+	transferNum, _ := strconv.Atoi(propsNum)
+
+	seller := User{}
+	buyer := User{}
 	work := Works{}
 
-	json.Unmarshal(userAsBytes1, &user1)
-	json.Unmarshal(userAsBytes2, &user2)
+	json.Unmarshal(sellerAsBytes, &seller)
+	json.Unmarshal(buyerAsBytes, &buyer)
 	json.Unmarshal(workAsBytes, &work)
 
 	// chake work's status
@@ -146,44 +156,44 @@ func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string)
 	}
 
 	// check seller have work
-	_, haveWork := user1.Ownlist[args[2]]
-	_, isOwnWork := work.Owners[args[0]]
+	_, haveWork := seller.Ownlist[workID]
+	_, isOwnWork := work.Owners[sellerID]
 	if !(haveWork) || !(isOwnWork) {
 		return shim.Error("Seller doesn't have work, please check again")
 	}
 
 	// check seller have enough ownership
-	if user1.Ownlist[args[2]] < transferNum {
+	if seller.Ownlist[workID] < transferNum {
 		return shim.Error("Seller doesn't have enough ownership to trade")
 	}
 
-	user1.Ownlist[args[2]] -= transferNum
-	work.Owners[args[0]] -= transferNum
-	if _, ishaveWork := user2.Ownlist[args[2]]; ishaveWork { // user1 and user2 both have work
+	seller.Ownlist[workID] -= transferNum
+	work.Owners[sellerID] -= transferNum
+	if _, ishaveWork := buyer.Ownlist[args[2]]; ishaveWork { // user1 and user2 both have work
 
-		user2.Ownlist[args[2]] += transferNum
-		work.Owners[args[1]] += transferNum
-	} else if user1.Ownlist[args[2]] > transferNum { // user1 only have work and give ownership partially
+		buyer.Ownlist[workID] += transferNum
+		work.Owners[buyerID] += transferNum
+	} else if seller.Ownlist[workID] > transferNum { // user1 only have work and give ownership partially
 
-		work.Owners[args[1]] = transferNum
-		user2.Ownlist[args[2]] = transferNum
+		buyer.Ownlist[workID] = transferNum
+		work.Owners[buyerID] = transferNum
 	} else { // user1 only have work and give all ownership
 
-		delete(work.Owners, args[0])
-		delete(user1.Ownlist, args[2])
-		work.Owners[args[1]] = transferNum
-		user2.Ownlist[args[2]] = transferNum
+		delete(work.Owners, sellerID)
+		delete(seller.Ownlist, workID)
+		work.Owners[buyerID] = transferNum
+		buyer.Ownlist[workID] = transferNum
 	}
 
 	work.Status = "TRADING"
 
-	userAsBytes1, _ = json.Marshal(user1)
-	userAsBytes2, _ = json.Marshal(user2)
+	sellerAsBytes, _ = json.Marshal(seller)
+	buyerAsBytes, _ = json.Marshal(buyer)
 	workAsBytes, _ = json.Marshal(work)
 
-	APIstub.PutState(args[0], userAsBytes1)
-	APIstub.PutState(args[1], userAsBytes2)
-	APIstub.PutState(args[2], workAsBytes)
+	APIstub.PutState(sellerID, sellerAsBytes)
+	APIstub.PutState(buyerID, buyerAsBytes)
+	APIstub.PutState(workID, workAsBytes)
 
 	return shim.Success(nil)
 }
@@ -194,20 +204,21 @@ func (a *ArtWork) endTradeProps(APIstub shim.ChaincodeStubInterface, args []stri
 		return shim.Error("Incorrect arguments")
 	}
 
-	workAsBytes, _ := APIstub.GetState(args[0])
-	work := Works{}
-	json.Unmarshal(workAsBytes, &work)
-
-	work.Status = "END"
-
+	workID := args[0]
 	finalPrice, _ := strconv.Atoi(args[1])
 	if finalPrice < 0 {
 		return shim.Error("Please, check the price")
 	}
+
+	workAsBytes, _ := APIstub.GetState(workID)
+	work := Works{}
+	json.Unmarshal(workAsBytes, &work)
+
+	work.Status = "END"
 	work.FinalPrice = finalPrice
 
 	workAsBytes, _ = json.Marshal(work)
-	APIstub.PutState(args[0], workAsBytes)
+	APIstub.PutState(workID, workAsBytes)
 
 	return shim.Success(nil)
 }
