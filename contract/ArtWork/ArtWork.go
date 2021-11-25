@@ -11,6 +11,9 @@ import (
 	"github.com/hyperledger/fabric/protos/peer"
 )
 
+type ArtWork struct {
+}
+
 type User struct {
 	ID      string         `json:"ID"`
 	Ownlist map[string]int `json:"Ownlist"`
@@ -27,19 +30,14 @@ type Works struct {
 	FinalPrice    int            `json:"FinalPrice"`
 }
 
-type ArtWork struct {
-}
+const COMPANY_ID = "myCompany"
 
 func (a *ArtWork) Init(APIstub shim.ChaincodeStubInterface) peer.Response {
 
-	var ownList = make(map[string]int)
-	data := User{ID: "myCompany", Ownlist: ownList}
+	data := User{ID: COMPANY_ID, Ownlist: map[string]int{"test": 1}}
 	dataAsBytes, _ := json.Marshal(data)
 
-	err := APIstub.PutState("myCompany", dataAsBytes)
-	if err != nil {
-		return shim.Error("Failed to Init")
-	}
+	APIstub.PutState(COMPANY_ID, dataAsBytes)
 
 	return shim.Success(nil)
 }
@@ -71,15 +69,11 @@ func (a *ArtWork) addUser(APIstub shim.ChaincodeStubInterface, args []string) pe
 		return shim.Error("Incorrect arguments")
 	}
 
-	var ownList = make(map[string]int)
-	// key: ID (args[0]), value: ID+OwnList (args[0]+[]) -> marshal (make data to byte)
-	data := User{ID: args[0], Ownlist: ownList}
+	// key: ID (args[0]), value: ID+OwnList (args[0]+map[string]int{}) -> marshal (make data to byte)
+	data := User{ID: args[0], Ownlist: map[string]int{}}
 	dataAsBytes, _ := json.Marshal(data)
 
-	err := APIstub.PutState(args[0], dataAsBytes)
-	if err != nil {
-		return shim.Error("Failed to add user")
-	}
+	APIstub.PutState(args[0], dataAsBytes)
 
 	return shim.Success(nil)
 }
@@ -93,25 +87,22 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) pe
 	// key: UCIcode (args[0]), value: UCIcode+Title+Artist+InitialPrice+TotalProperty+Status+Owners+FinalPrice  (args[0]+args[1]+args[2]+args[3]+args[4~]+1+[])
 	price, _ := strconv.Atoi(args[3])
 	property, _ := strconv.Atoi(args[4])
-	owners := map[string]int{"myCompany": property}
+	owners := map[string]int{COMPANY_ID: property}
 
 	data := Works{UCIcode: args[0], Title: args[1], Artist: args[2], InitialPrice: price, TotalProperty: property, Status: "ENROLL", Owners: owners, FinalPrice: -1}
 	dataAsBytes, _ := json.Marshal(data)
 
-	err := APIstub.PutState(args[0], dataAsBytes)
-	if err != nil {
-		return shim.Error("Failed to add work")
-	}
+	APIstub.PutState(args[0], dataAsBytes)
 
-	companyAsBytes, _ := APIstub.GetState("myCompany")
+	companyAsBytes, _ := APIstub.GetState(COMPANY_ID)
 	company := User{}
 	json.Unmarshal(companyAsBytes, &company)
 
-	company.Ownlist[args[0]] = property
-	err = APIstub.PutState("myCompany", companyAsBytes)
-	if err != nil {
-		return shim.Error("Failed to add work")
-	}
+	companyOwn := map[string]int{args[0]: property}
+	company.Ownlist = companyOwn
+
+	newCompanyAsBytes, _ := json.Marshal(company)
+	APIstub.PutState(COMPANY_ID, newCompanyAsBytes)
 
 	return shim.Success(nil)
 }
