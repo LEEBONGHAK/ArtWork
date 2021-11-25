@@ -52,6 +52,8 @@ func (a *ArtWork) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 		return a.addUser(APIstub, args)
 	} else if fn == "addWork" {
 		return a.addWork(APIstub, args)
+	} else if fn == "getInfos" {
+		return a.getInfos(APIstub, args)
 	} else if fn == "tradeProps" {
 		return a.tradeProps(APIstub, args)
 	} else if fn == "endTradeProps" {
@@ -112,6 +114,20 @@ func (a *ArtWork) addWork(APIstub shim.ChaincodeStubInterface, args []string) pe
 	}
 
 	return shim.Success(nil)
+}
+
+func (a *ArtWork) getInfos(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect arguments")
+	}
+
+	idAsBytes, _ := APIstub.GetState(args[0])
+	if idAsBytes == nil {
+		shim.Error("Invaild ID")
+	}
+
+	return shim.Success(idAsBytes)
 }
 
 func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {

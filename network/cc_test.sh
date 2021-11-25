@@ -2,16 +2,28 @@
 
 set -x
 
-docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["addUser", "myCompany"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
+docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["getInfos", "myCompany"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
 sleep 3
 
 docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["addUser", "u1"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
 sleep 3
 
+docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["getInfos", "u1"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
+sleep 3
+
 docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["addUser", "u2"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
 sleep 3
 
+docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["getInfos", "u2"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
+sleep 3
+
 docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["addWork", "a1", "title", "m1", "100", "100"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
+sleep 3
+
+docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["getInfos", "a1"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
+sleep 3
+
+docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["getInfos", "myCompany"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
 sleep 3
 
 docker exec cli peer chaincode invoke -n ArtWork -C myart -c '{"Args":["tradeProps", "myCompany", "u1", "a1", "30"]}' --peerAddresses peer0.org1.artwork.com:7051 peer0.org1.artwork.com:8051
