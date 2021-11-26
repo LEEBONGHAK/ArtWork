@@ -54,6 +54,16 @@
                 <button class="btn btn-primary" id="trade-btn">거래하기</button>
             </div>     
         </div>
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg">
+                <div id="end-trade-alert"></div>
+                <h3>소유권을 거래를 종료합니다</h3>
+                <input type="text" id="end-trade-workID" name="workID" placeholder="거래를 종료할 작품의 id를 입력하세요"> <br>
+                <input type="text" id="end-trade-finalPrice" name="finalPrice" placeholder="최종 판매금액을 입력하세요"> <br>
+                <button class="btn btn-primary" id="end-trade-btn">거래 종료하기</button>
+            </div>     
+        </div>
         
         <div class="row justify-content-md-center">
             <div class="col-lg">
@@ -90,11 +100,11 @@
 <script>    
     $("#new-user-btn").click(()=>{
         // new-user이라는 id값을 가지고 있는 input의 value를 가지고 옴
-        const value = $("#new-email").val();
+        const userID = $("#new-user").val();
         const url = "/user"
 
         // userID라는 파라메터에 위의 value를 넣음
-        $.post(url, {userID: value}, (data,status)=>{
+        $.post(url, {userID: userID}, (data,status)=>{
             // http 상태 코드가 200(success)이라면
             if(status == "success"){
                 // 성공했다는 alert창을 띄움
@@ -142,6 +152,22 @@
         })
     })
 
+    $("#end-trade-btn").click(()=>{
+        const workID = $("#end-trade-workID").val();
+        const finalPrice = $("#end-trade-finalPrice").val();
+
+        const url = "/end"
+
+        $.post(url, {workID: workID, finalPrice: finalPrice}, (data,status)=>{
+            // http 상태 코드가 200(success)이라면
+            if(status == "success"){
+                // 성공했다는 alert창을 띄움
+                $('#trade-alert').append("<div id='success' class='alert alert-success'>거래를 성공했습니다!</div>");
+                $('#trade-alert').fadeOut(4000);
+            }
+        })
+    })
+
     $("#find-info-btn").click(()=>{
         const pID = $("#find-info-pID").val();
         const url = "/info"
@@ -156,8 +182,8 @@
                 const parsedData = JSON.parse(test)
                 $('#info-table').empty();
                 
-                $('#info-table').append("<tr><th scope='row'>id</th><td>" + parsedData.average + "</td></tr>")
-                $('#info-table').append("<tr><th scope='row'>project title</th><td>" + parsedData.Ownlist + "</td></tr>")
+                $('#info-table').append("<tr><th scope='row'>id</th><td>" + parsedData.ID + "</td></tr>")
+                $('#info-table').append("<tr><th scope='row'>ownlist</th><td>" + JSON.stringify(parsedData.Ownlist) + "</td></tr>")
             }        
         })
     })
@@ -185,7 +211,7 @@
                 parsedData = data;
                 for(var i = 0; i < parsedData.length; i++ ){
                     $('#tx-table').append("<tr><th scope='row'>txid</th><td>" + parsedData[i].TxId + "</td></tr>")
-                    $('#tx-table').append("<tr><th scope='row'>value</th><td>" + JSON.stringify(parsedData[i].Value) + "</td></tr>")
+                    $('#tx-table').append("<tr><th scope='row'>value</th><td>" + JSON.stringify(parsedData[i].Values) + "</td></tr>")
                     $('#tx-table').append("<tr><th scope='row'>timestamp</th><td>" + parsedData[i].Timestamp + "</td></tr>")
                     $('#tx-table').append("<tr><th scope='row'>isdelete</th><td>" + parsedData[i].IsDelete + "</td></tr>")
                 }

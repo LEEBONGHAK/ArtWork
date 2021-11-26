@@ -170,7 +170,7 @@ app.get('/user', async(req, res)=>{
         const network = await gateway.getNetwork('myart');
         const contract = network.getContract('ArtWork');
         
-        result = await contract.evaluateTransaction('history', pid);
+        result = await contract.evaluateTransaction('getHistory', pid);
         
         gateway.disconnect();
         

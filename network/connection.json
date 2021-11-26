@@ -13,7 +13,7 @@
         }
     },
     "channels": {
-        "mychannel": {
+        "myart": {
             "orderers": [
                 "orderer.artwork.com"
             ],
