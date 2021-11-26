@@ -15,7 +15,7 @@ services:
             - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
             - FABRIC_CA_SERVER_CA_NAME=ca.org1.artwork.com
             - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.artwork.com-cert.pem
-            - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/b387b0659efd15d7340ada0ccdc44260ab15a66c71cafa572d743f4849170075_sk
+            - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/1adcb7e02fb8cd80a486ab9aba200525cf4af0eda508cdcb02c07bc26cab52b8_sk
         ports:
             - "7054:7054"
         command: sh -c 'fabric-ca-server start -b admin:adminpw'
@@ -31,7 +31,7 @@ services:
             - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
             - FABRIC_CA_SERVER_CA_NAME=ca.org2.artwork.com
             - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.artwork.com-cert.pem
-            - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/f044d5529402e26a6837a59b89e2c7ca37882e1ad5bdf14c41afbec852c27e3e_sk
+            - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/81e0ed6bf33f3fe33c3f14c7b808073783cc877c3f55b45e62a999ee7f2c8524_sk
         ports:
             - "8054:7054"
         command: sh -c 'fabric-ca-server start -b admin:adminpw'
