@@ -2,3 +2,5 @@ network/config
 network/crypto-config
 /prototype/node-modules
 /prototype/wallet
+/application/node-modules
+/application/wallet

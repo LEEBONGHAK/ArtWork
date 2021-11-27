@@ -1,0 +1,351 @@
+<head>
+    <!-- Bootstrap include -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="orders.css" rel="stylesheet">
+
+    <!-- fontawsome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.9.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.9.0/css/v4-shims.css">
+
+    <!-- jquery 버전 유의 -->
+    <!-- slim/jquery, 3.1.0 윗 버전에서 ajax가 작동하지 않는 오류 확인 -->
+    <!-- Bootstrap의 CDN을 copy&paste 하되 Line 8의 버전만 3.1.0으로 수정하세요 -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+
+    <title>ArtWork</title>
+</head>
+
+<body>
+    <header>
+        <div class="px-3 py-2 bg-dark text-white">
+            <div class="mx-5 w-auto">
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-between">
+                    <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+                        <i class="fab fa-acquisitions-incorporated fa-2x mr-3"></i>
+                        <span style="font-size: 1.5rem;">ArtWork</span>
+                    </a>
+
+                    <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-home fa-2x" width="24" height="24"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-tachometer-alt fa-2x" width="24" height="24"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-book fa-2x" width="24" height="24"></i>
+                                Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-th-large fa-2x" width="24" height="24"></i>
+                                Products
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-user-circle fa-2x" width="24" height="24"></i>
+                                Customers
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white text-center">
+                                <i class="bi d-block mx-auto mb-1 fas fa-palette fa-2x" width="24" height="24"></i>
+                                Works
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="px-3 py-2 border-bottom mb-3">
+            <div class="d-flex flex-wrap justify-content-between mx-5 w-auto">
+                <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto">
+                    <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+                </form>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-light text-dark me-2">Login</button>
+                    <button type="button" class="btn btn-primary">Sign-up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Chart</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <span data-feather="calendar"></span>
+                            This week
+                            </button>
+                        </div>
+                    </div>
+            
+                    <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+            
+                    <h2>Order Book</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Buying Volume</th>
+                                    <th scope="col">Price(₩)</th>
+                                    <th scope="col">Sales Volume</th>
+                                    <th scope="col">Price(₩)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white">
+                                <tr>
+                                    <td class="bg-success">34</td>
+                                    <td class="bg-success">10600</td>
+                                    <td class="bg-danger">75</td>
+                                    <td class="bg-danger">10650</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">61</td>
+                                    <td class="bg-success">10550</td>
+                                    <td class="bg-danger">46</td>
+                                    <td class="bg-danger">10700</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">35</td>
+                                    <td class="bg-success">10500</td>
+                                    <td class="bg-danger">26</td>
+                                    <td class="bg-danger">10750</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">74</td>
+                                    <td class="bg-success">10450</td>
+                                    <td class="bg-danger">50</td>
+                                    <td class="bg-danger">10800</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">30</td>
+                                    <td class="bg-success">10400</td>
+                                    <td class="bg-danger">51</td>
+                                    <td class="bg-danger">10850</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">35</td>
+                                    <td class="bg-success">10350</td>
+                                    <td class="bg-danger">60</td>
+                                    <td class="bg-danger">10900</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">54</td>
+                                    <td class="bg-success">10300</td>
+                                    <td class="bg-danger">66</td>
+                                    <td class="bg-danger">10950</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-success">28</td>
+                                    <td class="bg-success">10250</td>
+                                    <td class="bg-danger">107</td>
+                                    <td class="bg-danger">11000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light collapse">
+                    <div class="position-sticky pt-3 py-5">
+                        <div class="row justify-content-md-center mb-5">
+                            <div class="col-lg d-flex flex-column align-items-center justify-content-center">
+                                <div id="trade-alert"></div>
+                                <h5 class="mb-3">소유권을 거래합니다</h5>
+                                <input type="text" id="trade-sellerID" name="sellerID" placeholder="판매자의 id를 입력하세요">
+                                <input type="text" id="trade-buyerID" name="buyerID" placeholder="구매자의 id를 입력하세요">
+                                <input type="text" id="trade-workID" name="workID" placeholder="거래할 작품의 id를 입력하세요">
+                                <input type="text" id="trade-propsNum" name="propsNum" placeholder="거래할 소유권의 개수를 입력하세요">
+                                <button class="btn btn-primary btn-sm mt-3" id="trade-btn">거래하기</button>
+                            </div>
+                        </div>
+
+                        <div class="row justify-content-md-center">
+                            <div class="col-lg d-flex flex-column align-items-center justify-content-center">
+                                <div id="find-info-alert"></div>
+                                <h5 class="mb-3">유저정보를 조회합니다</h5>
+                                <input type="text" id="find-info-pID" name="pID" placeholder="조회할 유저id를 입력하세요">
+                                <button class="btn btn-warning btn-sm mt-3" id="find-info-btn">정보 조회하기</button>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <div class="col-md-5 ms-sm-auto col-lg-6 px-md-4 mt-4">
+                    <h3 class="border-bottom pb-2 mb-3">조회 정보</h3>
+                    <div class="table-responsive">
+                        <!-- 테이블 안에 row를 하나씩 붙이는 곳 -->
+                        <table class="info-table table table-success table-hover table-striped table-sm">
+                            <tbody id="info-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-5">
+        <div class="row container-fluid px-5">
+            <div class="col-2">
+                <h5>Made by</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">이봉학</li>
+                    <li class="nav-item mb-2">김동현</li>
+                </ul>
+            </div>
+    
+            <div class="col-2">
+                <h5>Supported by</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">아주대학교</li>
+                    <li class="nav-item mb-2">아주대학교 LINC사업단</li>
+                    <li class="nav-item mb-2">서울ICT이노베이션스퀘어</li>
+                </ul>
+            </div>
+    
+            <div class="col-2">
+                <h5>Special Thanks to</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">김재훈 교수님</li>
+                    <li class="nav-item mb-2">최광훈 강사님</li>
+                    <li class="nav-item mb-2">신운섭 강사님</li>
+                    <li class="nav-item mb-2">황동엽 강사님</li>
+                    <li class="nav-item mb-2">박찬형 강사님</li>
+                </ul>
+            </div>
+    
+            <div class="col-5 offset-1 px-5">
+                <form class="px-5">
+                    <h5>Subscribe to our newsletter</h5>
+                    <p>Monthly digest of whats new and exciting from us.</p>
+                    <div class="d-flex w-100 gap-2">
+                        <input id="newsletter1" type="text" class="form-control-md" placeholder="Email address">
+                        <button class="btn btn-primary" type="button">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    
+        <div class="d-flex justify-content-between py-4 my-4 border-top px-5">
+            <p>&copy; 2021 myCompany, Inc. All rights reserved.</p>
+            <ul class="list-unstyled d-flex">
+                <li class="ms-3 mx-1">
+                    <a class="link-dark" href="#">
+                        <i class="fab fa-twitter fa-2x bi text-dark" width="24" height="24"></i>
+                    </a>
+                </li>
+                <li class="ms-3 mx-1">
+                    <a class="link-dark" href="#">
+                        <i class="fab fa-instagram fa-2x bi text-dark" width="24" height="24"></i>
+                    </a>
+                </li>
+                <li class="ms-3 mx-1">
+                    <a class="link-dark" href="#">
+                        <i class="fab fa-facebook-square fa-2x bi text-dark" width="24" height="24"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha" crossorigin="anonymous"></script>
+    <script src="orders.js"></script>
+    <script>
+        $("#trade-btn").click(()=>{
+            const sellerID = $("#trade-sellerID").val();
+            const buyerID = $("#trade-buyerID").val();
+            const workID = $("#trade-workID").val();
+            const propsNum = $("#trade-propsNum").val();
+
+            const url = "/trade"
+
+            $.post(url, {sellerID: sellerID, buyerID: buyerID, workID: workID, propsNum: propsNum}, (data,status)=>{
+                // http 상태 코드가 200(success)이라면
+                if(status == "success"){
+                    // 성공했다는 alert창을 띄움
+                    $('#trade-alert').empty();
+                    $('#trade-alert').append("<div id='success' class='alert alert-success'>거래를 성공했습니다!</div>");
+                    $('#trade-alert').fadeIn(1000);
+                    $('#trade-alert').fadeOut(4000);
+                }
+            })
+        })
+
+        $("#find-info-btn").click(()=>{
+            const pID = $("#find-info-pID").val();
+            const url = "/info"
+            $.post(url, {pID: pID}, (data)=>{
+                // 조회했을 때 값이 null이 아니면 (일치하는 값이 존재한다면)
+                if(status != null){
+
+                    $('#find-info-alert').empty();
+                    $('#find-info-alert').append("<div id='success' class='alert alert-success'>조회를 성공했습니다!</div>");
+                    $('#find-info-alert').fadeIn(1000);
+                    $('#find-info-alert').fadeOut(2000);
+
+                    // stringify는 json객체를 string으로, parse는 string을 json객체로 변환 시켜줌
+                    const test = JSON.stringify(data)
+                    const parsedData = JSON.parse(test)
+
+                    $('#info-table').empty();
+                    $('#info-table').append("<tr><th scope='row'>id</th><td>" + parsedData.ID + "</td></tr>")
+                    $('#info-table').append("<tr><th scope='row'>ownlist</th><td>" + JSON.stringify(parsedData.Ownlist) + "</td></tr>")
+                }
+            })
+        })
+    </script>
+</body>
+
+<style>
+    .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+    }
+
+    .text-small {
+        font-size: 85%;
+    }
+
+    .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+    }
+
+    @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+            font-size: 3.5rem;
+        }
+    }
+</style>
