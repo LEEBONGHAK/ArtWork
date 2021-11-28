@@ -1,10 +1,9 @@
 <head>
     <!-- Bootstrap include -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="orders.css" rel="stylesheet">
+    <link href="./orders.css" rel="stylesheet">
 
     <!-- fontawsome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.9.0/css/all.css">
@@ -34,37 +33,31 @@
 
                     <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
                         <li>
-                            <a href="#" class="nav-link text-white text-center">
+                            <a href="./home.html" class="nav-link text-white text-center">
                                 <i class="bi d-block mx-auto mb-1 fas fa-home fa-2x" width="24" height="24"></i>
                                 Home
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white text-center">
+                            <a href="./dashboard.html" class="nav-link text-white text-center">
                                 <i class="bi d-block mx-auto mb-1 fas fa-tachometer-alt fa-2x" width="24" height="24"></i>
                                 Dashboard
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white text-center">
+                            <a href="./orders.html" class="nav-link text-white text-center">
                                 <i class="bi d-block mx-auto mb-1 fas fa-book fa-2x" width="24" height="24"></i>
                                 Orders
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white text-center">
-                                <i class="bi d-block mx-auto mb-1 fas fa-th-large fa-2x" width="24" height="24"></i>
-                                Products
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="nav-link text-white text-center">
+                            <a href="./customers.html" class="nav-link text-white text-center">
                                 <i class="bi d-block mx-auto mb-1 fas fa-user-circle fa-2x" width="24" height="24"></i>
                                 Customers
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white text-center">
+                            <a href="works.html" class="nav-link text-white text-center">
                                 <i class="bi d-block mx-auto mb-1 fas fa-palette fa-2x" width="24" height="24"></i>
                                 Works
                             </a>
@@ -81,7 +74,9 @@
 
                 <div class="text-end">
                     <button type="button" class="btn btn-light text-dark me-2">Login</button>
-                    <button type="button" class="btn btn-primary">Sign-up</button>
+                    <a href="./signup.html">
+                        <button type="button" class="btn btn-primary">Sign-up</button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -276,9 +271,8 @@
         </div>
     </footer>
 
-    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha" crossorigin="anonymous"></script>
-    <script src="orders.js"></script>
+    <script src="./orders.js"></script>
     <script>
         $("#trade-btn").click(()=>{
             const sellerID = $("#trade-sellerID").val();
@@ -294,6 +288,11 @@
                     // 성공했다는 alert창을 띄움
                     $('#trade-alert').empty();
                     $('#trade-alert').append("<div id='success' class='alert alert-success'>거래를 성공했습니다!</div>");
+                    $('#trade-alert').fadeIn(1000);
+                    $('#trade-alert').fadeOut(4000);
+                } else {
+                    $('#trade-alert').empty();
+                    $('#trade-alert').append("<div id='danger' class='alert alert-danger'>이 작품은 더이상 거래할 수 없습니다.</div>");
                     $('#trade-alert').fadeIn(1000);
                     $('#trade-alert').fadeOut(4000);
                 }

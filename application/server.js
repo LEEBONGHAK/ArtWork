@@ -26,7 +26,7 @@ app.get('/', (req, res)=>{
     res.sendFile(__dirname + '/index.html');
 })
 
-async function cc_call(fn_name, args){
+async function cc_call(fn_name, args) {
     
     const walletPath = path.join(process.cwd(), 'wallet');
     const wallet = new FileSystemWallet(walletPath);
@@ -56,15 +56,6 @@ async function cc_call(fn_name, args){
 
         result = await contract.submitTransaction('addWork', UCIcode, title, artist, initialPrice, properties);
     }
-    else if (fn_name == 'tradeProps')
-    {
-        seller = args[0];
-        buyer = args[1];
-        work = args[2];
-        propsNum = args[3];
-
-        result = await contract.submitTransaction('tradeProps', seller, buyer, work, propsNum);
-    }
     else if (fn_name == 'endTradeProps')
     {
         work = args[0];
@@ -77,7 +68,7 @@ async function cc_call(fn_name, args){
     else if(fn_name == 'getInfos')
         result = await contract.evaluateTransaction('getHistory', args);
     else
-        result = 'not supported function'
+        result = 'not supported function';
 
     return result;
 }
@@ -89,8 +80,8 @@ app.post('/user', async(req, res)=>{
 
     result = cc_call('addUser', userID)
 
-    const myobj = {result: "success"}
-    res.status(200).json(myobj)
+    const myobj = {result: "success"};
+    res.status(200).json(myobj);
 })
 
 // add work
@@ -107,28 +98,53 @@ app.post('/work', async(req, res)=>{
     console.log("add work totalProperty: " + totalProperty);
 
     var args=[UCIcode, title, artist, initialPrice, totalProperty];
-    result = cc_call('addWork', args)
+    result = cc_call('addWork', args);
 
-    const myobj = {result: "success"}
-    res.status(200).json(myobj) 
+    if (result == "fail") {
+        const myobj = {result: "fail"};
+        res.status(500).json(myobj);
+    } else {
+        const myobj = {result: "success"};
+        res.status(200).json(myobj);
+    }
 })
 
 // trade Property
 app.post('/trade', async(req, res)=>{
-    const sellerID = req.body.sellerID;
-    const buyerID = req.body.buyerID;
-    const workID = req.body.workID;
-    const propsNum = req.body.propsNum;
-    console.log("start trade with sellerID: " + sellerID);
-    console.log("start trade with buyerID: " + buyerID);
-    console.log("start trade with workID: " + workID);
-    console.log("start trade with propsNum: " + propsNum);
 
-    var args=[sellerID, buyerID, workID, propsNum];
-    result = cc_call('tradeProps', args)
+    try {
+        const sellerID = req.body.sellerID;
+        const buyerID = req.body.buyerID;
+        const workID = req.body.workID;
+        const propsNum = req.body.propsNum;
+        console.log("start trade with sellerID: " + sellerID);
+        console.log("start trade with buyerID: " + buyerID);
+        console.log("start trade with workID: " + workID);
+        console.log("start trade with propsNum: " + propsNum);
 
-    const myobj = {result: "success"}
-    res.status(200).json(myobj) 
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists('user1');
+        if (!userExists) {
+            console.log('An identity for the user "user1" does not exist in the wallet');
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
+        const network = await gateway.getNetwork('myart');
+        const contract = network.getContract('ArtWork');
+
+        var result = await contract.submitTransaction('tradeProps', sellerID, buyerID, workID, propsNum);
+
+        const myobj = {result: "success"};
+        res.status(200).json(myobj);
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(204).json({result: "fail"});
+    }
+    
 })
 
 // end trade Property
@@ -139,10 +155,10 @@ app.post('/end', async(req, res)=>{
     console.log("ende trade workID with final price: " + finalPrice);
 
     var args=[workID, finalPrice];
-    result = cc_call('endTradeProps', args)
+    result = cc_call('endTradeProps', args);
 
-    const myobj = {result: "success"}
-    res.status(200).json(myobj) 
+    const myobj = {result: "success"};
+    res.status(200).json(myobj); 
 })
 
 // history
@@ -175,10 +191,9 @@ app.get('/user', async(req, res)=>{
         gateway.disconnect();
         
         console.log(`${result}`);
-        const myobj = JSON.parse(result)
+        const myobj = JSON.parse(result);
 
-        
-        res.status(200).json(myobj)
+        res.status(200).json(myobj);
 
     }
     catch (error) {
@@ -207,10 +222,9 @@ app.post('/info', async (req,res)=>{
     const network = await gateway.getNetwork('myart');
     const contract = network.getContract('ArtWork');
     const result = await contract.evaluateTransaction('getInfos', pID);
-    const myobj = JSON.parse(result)
-    res.status(200).json(myobj)
+    const myobj = JSON.parse(result);
+    res.status(200).json(myobj);
     // res.status(200).json(result)
-
 });
 
 // server start
