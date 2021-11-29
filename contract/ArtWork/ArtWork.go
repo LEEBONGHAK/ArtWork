@@ -162,7 +162,7 @@ func (a *ArtWork) tradeProps(APIstub shim.ChaincodeStubInterface, args []string)
 		return shim.Error("Seller doesn't have work, please check again")
 	}
 
-	// check seller have enough ownership
+	// check seller have not enough ownership
 	if seller.Ownlist[workID] < transferNum {
 		return shim.Error("Seller doesn't have enough ownership to trade")
 	}

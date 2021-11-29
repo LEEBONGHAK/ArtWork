@@ -22,16 +22,36 @@
         <h1> ArtWork<br>프로토타입 </h1>
         <a href="./index.html">USER</a>
         <a href="./admin.html">ADMIN</a>
-        <hr>        
+        <hr>
         <div class="row justify-content-md-center">
             <div class="col-lg">
-                <div id="trade-alert"></div>
-                <h3>소유권을 거래합니다</h3>
-                <input type="text" id="trade-sellerID" name="sellerID" placeholder="판매자의 id를 입력하세요"> <br>
-                <input type="text" id="trade-buyerID" name="buyerID" placeholder="구매자의 id를 입력하세요"> <br>
-                <input type="text" id="trade-workID" name="workID" placeholder="거래할 작품의 id를 입력하세요"> <br>
-                <input type="text" id="trade-propsNum" name="propsNum" placeholder="거래할 소유권의 개수를 입력하세요"> <br>
-                <button class="btn btn-primary" id="trade-btn">거래하기</button>
+                <div id="new-user-alert"></div>
+                <h3>유저를 추가합니다</h3>
+                <input type="text" id="new-user" name="user" placeholder="추가할 유저의 id를 입력하세요"> <br>
+                <button class="btn btn-primary" id="new-user-btn">유저 추가</button>
+            </div>   
+        </div>
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg">
+                <div id="new-work-alert"></div>
+                <h3>작품를 추가합니다</h3>
+                <input type="text" id="new-UCIcode" name="UCIcode" placeholder="추가할 작품의 id를 입력하세요"> <br>
+                <input type="text" id="new-title" name="title" placeholder="추가할 작품의 제목를 입력하세요"> <br>
+                <input type="text" id="new-artist" name="artist" placeholder="추가할 작품의 제작자를 입력하세요"> <br>
+                <input type="text" id="new-initialPrice" name="initialPrice" placeholder="추가할 작품의 매입가를 입력하세요"> <br>
+                <input type="text" id="new-totalProperty" name="totalProperty" placeholder="추가할 작품의 소유권 수를 입력하세요"> <br>
+                <button class="btn btn-primary" id="new-work-btn">작품 추가</button>
+            </div>   
+        </div>
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg">
+                <div id="end-trade-alert"></div>
+                <h3>소유권을 거래를 종료합니다</h3>
+                <input type="text" id="end-trade-workID" name="workID" placeholder="거래를 종료할 작품의 id를 입력하세요"> <br>
+                <input type="text" id="end-trade-finalPrice" name="finalPrice" placeholder="최종 판매금액을 입력하세요"> <br>
+                <button class="btn btn-primary" id="end-trade-btn">거래 종료하기</button>
             </div>     
         </div>
         
@@ -68,22 +88,60 @@
 </body>
 
 <script>    
-    $("#trade-btn").click(()=>{
-        const sellerID = $("#trade-sellerID").val();
-        const buyerID = $("#trade-buyerID").val();
-        const workID = $("#trade-workID").val();
-        const propsNum = $("#trade-propsNum").val();
+    $("#new-user-btn").click(()=>{
+        // new-user이라는 id값을 가지고 있는 input의 value를 가지고 옴
+        const userID = $("#new-user").val();
+        const url = "/user"
 
-        const url = "/trade"
-
-        $.post(url, {sellerID: sellerID, buyerID: buyerID, workID: workID, propsNum: propsNum}, (data,status)=>{
+        // userID라는 파라메터에 위의 value를 넣음
+        $.post(url, {userID: userID}, (data, status)=>{
             // http 상태 코드가 200(success)이라면
             if(status == "success"){
                 // 성공했다는 alert창을 띄움
-                $('#trade-alert').empty();
-                $('#trade-alert').append("<div id='success' class='alert alert-success'>거래를 성공했습니다!</div>");
-                $('#trade-alert').fadeIn(1000);
-                $('#trade-alert').fadeOut(4000);
+                $('#new-user-alert').empty();
+                $('#new-user-alert').append("<div id='success' class='alert alert-success'>유저 추가를 성공했습니다!</div>");
+                $('#new-user-alert').fadeIn(1000);
+                $('#new-user-alert').fadeOut(4000);
+            }
+        })
+    })
+
+    $("#new-work-btn").click(()=>{
+        // new-UCIcode이라는 id값을 가지고 있는 input의 value를 가지고 옴
+        const UCIcode = $("#new-UCIcode").val();
+        const title = $("#new-title").val();
+        const artist = $("#new-artist").val();
+        const initialPrice = $("#new-initialPrice").val();
+        const totalProperty = $("#new-totalProperty").val();
+
+        const url = "/work"
+
+        $.post(url, {UCIcode: UCIcode, title: title, artist: artist, initialPrice: initialPrice, totalProperty: totalProperty}, (data,status)=>{
+            // http 상태 코드가 200(success)이라면
+            if(status == "success"){
+                // 성공했다는 alert창을 띄움
+                $('#new-work-alert').empty();
+                $('#new-work-alert').append("<div id='success' class='alert alert-success'>작품 추가를 성공했습니다!</div>");
+                $('#new-work-alert').fadeIn(1000);
+                $('#new-work-alert').fadeOut(4000);
+            }
+        })
+    })
+
+    $("#end-trade-btn").click(()=>{
+        const workID = $("#end-trade-workID").val();
+        const finalPrice = $("#end-trade-finalPrice").val();
+
+        const url = "/end"
+
+        $.post(url, {workID: workID, finalPrice: finalPrice}, (data, status)=>{
+            // http 상태 코드가 200(success)이라면
+            if(status == "success"){
+                // 성공했다는 alert창을 띄움
+                $('#end-trade-alert').empty();
+                $('#end-trade-alert').append("<div id='success' class='alert alert-success'>거래를 성공했습니다!</div>");
+                $('#end-trade-alert').fadeIn(1000);
+                $('#end-trade-alert').fadeOut(4000);
             }
         })
     })
