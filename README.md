@@ -1,5 +1,7 @@
 # ArtWork - Hyperledger Fabric Project
 
+[PPT](https://docs.google.com/presentation/d/1R_YuVRk6d4nVjM2tsvUI4r1VCIgzRnZ2/edit?rtpof=true&sd=true) / [Youtube](https://www.youtube.com/watch?v=3GxkCB55qPY)
+
 ## pre-condition
 
 - curl, docker, docker-compose, go, nodejs
